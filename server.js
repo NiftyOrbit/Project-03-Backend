@@ -1,16 +1,25 @@
 var express = require('express');
 const app = express();
 const db = require('./models');
-const cookieParser =require('cookie-parser');
 const authRoutes = require('./routes/auth')
+var cors = require('cors');
+const productRoutes = require('./routes/productRoutes')
 const categoryRoutes = require('./routes/categoryRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const brandRoutes = require('./routes/brandRoutes');
 require('dotenv').config();
 app.use(express.json());
-app.use('/categories', categoryRoutes);
-app.use('/auth', authRoutes);
+app.use('/categories',cors(), categoryRoutes);
+app.use('/products',cors(), productRoutes);
+app.use('/auth',cors(), authRoutes);
+app.use('/brand',cors(), brandRoutes);
+app.use('/data',cors(),uploadRoutes );
 
 
-db.sequelize.sync({ alter:true}).then(()=>{
+console.log(db);
+db.sequelize.sync({ alter:true}).then(() => {
+    return db.brandcategory.sync(); // explicitly recreate missing table
+  }).then(()=>{
     console.log('Database Synced');
 }).catch(err=>{
     console.log(`Synced Error: ${err}`);
