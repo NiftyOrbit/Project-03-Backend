@@ -35,5 +35,12 @@ const User = sequelize.define('user',{
         type:DataTypes.TEXT,
         allowNull:true
     }});
+    User.associate = (models) => {
+        User.hasMany(models.Contact, { foreignKey: 'userId', as: 'contact' });
+        User.hasMany(models.ActivityLog, { foreignKey: 'user_email'});
+
+
+      };
+    
     return User;
 }

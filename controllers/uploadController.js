@@ -17,26 +17,28 @@ exports.uploadBulkData = async (req, res) => {
 
 
     const products = data.map((row, index) => {
-        const partnumber = String(row['Part Number'] || row['part_number'] || '').trim();
+        const part_number = String(row['Part Number'] || row['part_number'] || '').trim();
+        const product_id = Number(row['product_id'] || row['Product_id'] || 0);
         const brandCategory = row['brand_category'] || row['Brand Category'] || '';
         const condition = row['Condition'] || row['condition'] || '';
-        const subcondition = row['sub_condition'] || row['Sub Condtion'] || '';
-        const price = Number(row['Price'] || 0);
-        const quantity = Number(row['Quantity'] || 0);
-        const shortDesc = row['Short Description'] || '';
-        const longDesc = row['Long Description'] || '';
+        const sub_condition = row['sub_condition'] || row['Sub Condtion'] || '';
+        const price = Number(row['price'] || 0);
+        const quantity = Number(row['quantity'] || 0);
+        const shortDesc = row['short_description'] || '';
+        const longDesc = row['long_description'] || '';
         const status = row['status'] || '';
       
     return {
-        partnumber: partnumber,
+       product_id: product_id,
+        part_number: part_number,
         brandcategoryId: Number(brandCategory),
-        image: `https://cdn.niftyorbit.com/${partnumber}.png`,
+        image: `https://cdn.niftyorbit.com/${part_number}.png`,
         condition: String(condition),
-        subcondition: String(subcondition),
+        sub_condition: String(sub_condition),
         price,
         quantity,
-        shortdescription: String(shortDesc),
-        longdescription: String(longDesc),
+        short_description: String(shortDesc),
+        long_description: String(longDesc),
         status: String(status),
       };
   })
@@ -62,16 +64,22 @@ exports.uploadBulkDataBrand = async (req, res) => {
       
           const brands = data.map(async (row, index) => {
             console.log(`Row ${index}:`, row);
-             const name = String(row['brand_name'] || row['brand_name'] || '').trim();
+             const brand_name = String(row['brand_name'] || row['brand_name'] || '').trim();
+             const brand_id = Number(row['brand_id'] || row['Brand_id'] || '');
+
   
             const createdBrand = await brand.create({
-              name: String(row.brand_name || ''),});
+              brand_name: String(row.brand_name || ''),
+              brand_id: Number(row.brand_id || 0)});
           return {
-              name: name
+              brand_name: brand_name,
+               brand_id: brand_id
             };
             
         })
             console.log(brands);
+            //const createdBrand = await brand.bulkCreate(brands);
+
             res.json({ message: 'Products created successfully' });
           }catch(err){
             res.status(404).json({error: err.message});
@@ -90,17 +98,21 @@ exports.uploadBulkDataCategory = async (req, res) => {
                 console.log('Sample row keys:', Object.keys(data[0]));
             
             
-                const brands = data.map((row, index) => {
+                const brands = data.map(async (row, index) => {
                     const name = String(row['category_name'] || row['brand_name'] || '').trim();
-                    
+                    const category_id = Number(row['product_category_id'] || row['brand_id'] || 0);
+                    const createdBrand = await category.create({
+                      category_name: String(row.category_name || ''),
+                      product_category_id: Number(row.product_category_id || 0)});
                   
                 return {
-                    name: name
+                    category_name: name,
+                    product_category_id: category_id
                   };
               })
                   console.log(brands);
-                  const createdBrand = await category.bulkCreate(brands);
-                  res.json({ message: 'Products created successfully', createdBrand });
+                  //const createdBrand = await category.bulkCreate(brands);
+                  res.json({ message: 'Products created successfully' });
                 }catch(err){
                   res.status(404).json({error: err.message});
             
@@ -119,11 +131,13 @@ exports.uploadBulkDataSubcategory = async (req, res) => {
                   
                   
                       const brands = data.map((row, index) => {
-                          const name = String(row['sub_category_name'] || row['brand'] || '').trim();
+                        const sub_category_id = Number(row['sub_category_id'] || row['brand'] ||0);
+                          const sub_category_name = String(row['sub_category_name'] || row['brand'] || '').trim();
                           
                         
                       return {
-                          name: name
+                          sub_category_name: sub_category_name,
+                          sub_category_id: sub_category_id,
                         };
                     })
                         console.log(brands);
@@ -147,16 +161,18 @@ exports.uploadBulkDataBrandcategory = async (req, res) => {
                         
                         
                             const brands = data.map((row, index) => {
-                                const brandId = String(row['brand_id'] || row['brand'] || '').trim();
-                                const categoryId = String(row['category_id'] || row['brand'] || '').trim();
-                                const subcategoryId = String(row['sub_category_id'] || row['brand'] || '').trim();
+                                const brandId = Number(row['brand_id'] || row['brand'] || 0);
+                                const id = Number(row['brand_category_id'] || 0);
+                                const categoryId = Number(row['category_id'] || row['brand'] || 0);
+                                const subcategoryId = Number(row['sub_category_id'] || row['brand'] || 0);
 
                                 
                               
                             return {
-                                brandId: brandId,
-                                categoryId: categoryId,
-                                subcategoryId: subcategoryId
+                              id: id,
+                                brand_id: brandId,
+                                category_id: categoryId,
+                                sub_category_id: subcategoryId
                               };
                           });
                               console.log(brands);

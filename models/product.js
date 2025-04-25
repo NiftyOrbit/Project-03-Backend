@@ -3,16 +3,16 @@ const { brandcategory } = require(".");
 
 module.exports = (sequelize, DataTypes) => {
     const product = sequelize.define('product',{
-        id:{
+        product_id:{
             type:DataTypes.INTEGER,
             primaryKey:true,
             autoIncrement: true
         },
-        partnumber:{
+        part_number:{
             type:DataTypes.STRING,
     
         },
-        longdescription:{
+        long_description:{
             type:DataTypes.TEXT,
         },
         image:{
@@ -22,19 +22,19 @@ module.exports = (sequelize, DataTypes) => {
         condition:{
             type:DataTypes.STRING,
         },
-        subcondition:{
+        sub_condition:{
             type:DataTypes.STRING,
 
         },
         price:{
-            type:DataTypes.DECIMAL(10,2),
+            type:DataTypes.FLOAT,
             allowNull:false
         },
         quantity:{
             type:DataTypes.INTEGER,
             
         },
-        shortdescription:{
+        short_description:{
             type: DataTypes.TEXT,
         },
         status:{
@@ -50,6 +50,10 @@ module.exports = (sequelize, DataTypes) => {
     });
     product.associate = (models) => {
         product.belongsTo(models.brandcategory, { foreignKey: 'brandcategoryId', as: 'brandcategory' });
+        product.hasMany(models.OrderItem, {
+            foreignKey: 'productId',
+            as: 'orderItem'
+          });
   
       };
         return product;

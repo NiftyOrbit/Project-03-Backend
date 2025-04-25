@@ -3,12 +3,12 @@ const { brandcategory } = require(".");
 
 module.exports = (sequelize, DataTypes) => {
     const brand = sequelize.define('brand',{
-        id:{
+        brand_id:{
             type:DataTypes.INTEGER,
             primaryKey:true,
-            autoIncrement: true
+          //  autoIncrement: true
         },
-        name:{
+        brand_name:{
             type:DataTypes.STRING
     
         }
@@ -16,9 +16,8 @@ module.exports = (sequelize, DataTypes) => {
     });
 
 brand.associate = (models) => {
-        brand.hasMany(models.brandcategory, { foreignKey: 'brandId', as: 'brandcategory' });
-  
-      };
+        brand.hasMany(models.brandcategory, { foreignKey: 'brand_id', as: 'brandcategory' });
+ };
 
     
           

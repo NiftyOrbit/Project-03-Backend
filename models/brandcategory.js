@@ -1,24 +1,25 @@
-const { brand, category, subcategory } = require(".");
 
 module.exports = (sequelize, DataTypes) => {
   const brandcategory = sequelize.define('brandcategory', {
     id:{
       type:DataTypes.INTEGER,
       primaryKey:true,
-      autoIncrement: true
+      //autoIncrement: true
   },
-    brandId: {
+    brand_id: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    categoryId: {
+    category_id: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    subcategoryId: {
+    sub_category_id: {
       type: DataTypes.INTEGER,
       allowNull: false
     }
+  }, {
+    tableName: 'brandcategory' // <-- optional, force specific table name
   });
   brandcategory.associate = (models) => {
     brandcategory.hasMany(models.product, {
@@ -27,23 +28,19 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     brandcategory.belongsTo(models.brand, {
-      foreignKey: 'brandId',
+      foreignKey: 'brand_id',
       as: 'brand',
       onDelete: 'CASCADE',  // optional: handle deletion behavior
       onUpdate: 'CASCADE' 
     });
     brandcategory.belongsTo(models.category, {
-      foreignKey: 'categoryId',
+      foreignKey: 'category_id',
       as: 'category'
     });
     brandcategory.belongsTo(models.subcategory, {
-      foreignKey: 'subcategoryId',
+      foreignKey: 'sub_category_id',
       as: 'subcategory'
     });
   };
-
-
- 
-
-  return brandcategory;
+   return brandcategory;
 };

@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const {auth} = require('../middleware/auth')
-const { register, login, googleLogin, forgePassword, verifyOtp, resetPassword } = require('../controllers/authController');
+const { register, login, googleLogin, forgePassword, verifyOtp, resetPassword, updateUserRole } = require('../controllers/authController');
 const { User } = require('../models');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 
 const { generateAccessToken, generateRefreshToken } = require('../utils/token');
+const isAdmin = require('../middleware/isAdmin');
 
 router.post('/register', register);
 router.post('/login', login);
@@ -48,6 +49,8 @@ router.post('/google-login', googleLogin);
 router.post('/forget-password', forgePassword);
 router.post('/verify-otp', verifyOtp);
 router.post('/reset-password', resetPassword);
+router.put('/update-role',  updateUserRole);
+
 
 
 module.exports = router;    

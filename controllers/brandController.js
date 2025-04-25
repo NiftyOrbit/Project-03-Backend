@@ -14,7 +14,7 @@ exports.getAllProductWithBrandAndCategory = async (req, res) => {
       }
   
       const brands = await brand.findAll({
-        where: { id: brandId },
+        where: { brand_id: brandId },
         include: [
           {
             model: brandcategory,
@@ -23,13 +23,13 @@ exports.getAllProductWithBrandAndCategory = async (req, res) => {
               {
                 model: category,
                 as: 'category',
-                where: categoryId ? { id: categoryId } : undefined,
+                where: categoryId ? { product_category_id: categoryId } : undefined,
                 required: !!categoryId,
               },
               {
                 model: subcategory,
                 as: 'subcategory',
-                where: subcategoryId ? { id: subcategoryId } : undefined,
+                where: subcategoryId ? { sub_category_id: subcategoryId } : undefined,
                 required: !!subcategoryId,
               },
               {
@@ -48,16 +48,16 @@ exports.getAllProductWithBrandAndCategory = async (req, res) => {
   
       const response = brands.map((b) => {
         const brandObj = {
-          brand_id: b.id,
-          brand_name: b.name,
+          brand_id: b.brand_id,
+          brand_name: b.brand_name,
         };
   
         // If only brandId → return brand with all products (across all brandcategory entries)
         if (!categoryId && !subcategoryId) {
           const allProducts = b.brandcategory.flatMap((bc) => bc.product || []);
           brandObj.products = allProducts.map((p) => ({
-            product_id: p.id,
-            part_number: p.partnumber,
+            product_id: p.product_id,
+            part_number: p.part_number,
           }));
           return brandObj;
         }
@@ -65,25 +65,25 @@ exports.getAllProductWithBrandAndCategory = async (req, res) => {
         // If brandId + categoryId (and optionally subcategoryId)
         brandObj.categories = b.brandcategory.map((bc) => {
           const categoryInfo = {
-            category_id: bc.category?.id,
-            category_name: bc.category?.name,
+            category_id: bc.category?.product_category_id,
+            category_name: bc.category?.category_name,
           };
   
           if (subcategoryId) {
             categoryInfo.subcategories = [
               {
-                sub_category_id: bc.subcategory?.id,
-                sub_category_name: bc.subcategory?.name,
+                sub_category_id: bc.subcategory?.sub_category_id,
+                sub_category_name: bc.subcategory?.sub_category_name,
                 products: (bc.product || []).map((p) => ({
-                  product_id: p.id,
-                  part_number: p.partnumber,
+                  product_id: p.product_id,
+                  part_number: p.part_number,
                 })),
               },
             ];
           } else {
             categoryInfo.products = (bc.product || []).map((p) => ({
-              product_id: p.id,
-              part_number: p.partnumber,
+              product_id: p.product_id,
+              part_number: p.part_number,
             }));
           }
   
@@ -104,7 +104,7 @@ exports.getPartName = async (req, res) => {
     try {
       // Fetch flat joined data using Sequelize
       const data = await brand.findAll({
-        attributes: ['id', 'name'],
+        attributes: ['brand_id', 'brand_name'],
         include: [
           {
             model: brandcategory,
@@ -114,26 +114,26 @@ exports.getPartName = async (req, res) => {
               {
                 model: category,
                 as: 'category',
-                attributes: ['id', 'name'],
+                attributes: ['product_category_id', 'category_name'],
               },
               {
                 model: subcategory,
                 as: 'subcategory',
-                attributes: ['id', 'name'],
+                attributes: ['sub_category_id', 'sub_category_name'],
               },
               {
                 model: product,
                 as: 'product',
-                attributes: ['id', 'partnumber'],
+                attributes: ['product_id', 'part_number'],
               },
             ],
           },
         ],
         order: [
-          ['id', 'ASC'],
-          [{ model: brandcategory, as: 'brandcategory' }, { model: category, as: 'category' }, 'id', 'ASC'],
-          [{ model: brandcategory, as: 'brandcategory' }, { model: subcategory, as: 'subcategory' }, 'id', 'ASC'],
-          [{ model: brandcategory, as: 'brandcategory' }, { model: product, as: 'product' }, 'id', 'ASC'],
+          ['brand_id', 'ASC'],
+          [{ model: brandcategory, as: 'brandcategory' }, { model: category, as: 'category' }, 'product_category_id', 'ASC'],
+          [{ model: brandcategory, as: 'brandcategory' }, { model: subcategory, as: 'subcategory' }, 'sub_category_id', 'ASC'],
+          [{ model: brandcategory, as: 'brandcategory' }, { model: product, as: 'product' }, 'product_id', 'ASC'],
         ],
       });
   
@@ -144,8 +144,8 @@ exports.getPartName = async (req, res) => {
       // ✅ Transform to nested structure
       const result = data.map((b) => {
         const brandObj = {
-          brand_id: b.id,
-          brand_name: b.name,
+          brand_id: b.brand_id,
+          brand_name: b.brand_name,
           categories: [],
         };
   
@@ -157,9 +157,9 @@ exports.getPartName = async (req, res) => {
           const prodList = bc.product || [];
   
           if (!categoryMap.has(cat.id)) {
-            categoryMap.set(cat.id, {
-              category_id: cat.id,
-              category_name: cat.name,
+            categoryMap.set(cat.produtc_category_id, {
+              category_id: cat.product_category_id,
+              category_name: cat.category_name,
               subcategories: [],
             });
           }
@@ -169,8 +169,8 @@ exports.getPartName = async (req, res) => {
           let subcategoryEntry = categoryEntry.subcategories.find(s => s.subcategory_id === sub.id);
           if (!subcategoryEntry) {
             subcategoryEntry = {
-              subcategory_id: sub.id,
-              subcategory_name: sub.name,
+              subcategory_id: sub.sub_category_id,
+              subcategory_name: sub.sub_category_name,
               products: [],
             };
             categoryEntry.subcategories.push(subcategoryEntry);
@@ -179,8 +179,8 @@ exports.getPartName = async (req, res) => {
           prodList.forEach((p) => {
             if (!subcategoryEntry.products.find(pr => pr.product_id === p.id)) {
               subcategoryEntry.products.push({
-                product_id: p.id,
-                product_name: p.partnumber,
+                product_id: p.product_id,
+                product_name: p.part_number,
               });
             }
           });
@@ -208,14 +208,14 @@ exports.getBrandsByCategory = async (req, res) => {
       const matchingCategories = await category.findAll({
         where: {
            // name: categoryName
-          name: {
+          category_name: {
             [Op.iLike]: `%${categoryName}%`,
           },
         },
-        attributes: ['id'],
+        attributes: ['product_category_id'],
       });
   
-      const categoryIds = matchingCategories.map((cat) => cat.id);
+      const categoryIds = matchingCategories.map((cat) => cat.product_category_id);
   
       if (!categoryIds.length) {
         return res.status(404).json({ error: 'No matching categories found.' });
@@ -223,14 +223,14 @@ exports.getBrandsByCategory = async (req, res) => {
   
       // STEP 2: Fetch brands with brandcategories matching those category IDs
       const brands = await brand.findAll({
-        attributes: ['id', 'name'],
+        attributes: ['brand_id', 'brand_name'],
         include: [
           {
             model: brandcategory,
             as: 'brandcategory',
             attributes: ['id'],
             where: {
-              categoryId: {
+              category_id: {
                 [Op.in]: categoryIds,
               },
             },
@@ -238,26 +238,26 @@ exports.getBrandsByCategory = async (req, res) => {
               {
                 model: category,
                 as: 'category',
-                attributes: ['id', 'name'],
+                attributes: ['product_category_id', 'category_name'],
               },
               {
                 model: subcategory,
                 as: 'subcategory',
-                attributes: ['id', 'name'],
+                attributes: ['sub_category_id', 'sub_category_name'],
                 required: false,
               },
               {
                 model: product,
                 as: 'product',
                 attributes: [
-                  'id',
-                  'partnumber',
+                  'product_id',
+                  'part_number',
                   'price',
                   'quantity',
-                  'shortdescription',
-                  'longdescription',
+                  'short_description',
+                  'long_description',
                   'image',
-                  'subcondition',
+                  'sub_condition',
                   'condition',
                 ],
                 required: false,
@@ -270,8 +270,8 @@ exports.getBrandsByCategory = async (req, res) => {
       // STEP 3: Transform the response
       const result = brands.map((b) => {
         const brandObj = {
-          brand_id: b.id,
-          brand_name: b.name,
+          brand_id: b.brand_id,
+          brand_name: b.brand_name,
           categories: [],
         };
   
@@ -285,24 +285,24 @@ exports.getBrandsByCategory = async (req, res) => {
           const prodList = bc.product || [];
   
           if (!categoryMap.has(cat.id)) {
-            categoryMap.set(cat.id, {
-              category_id: cat.id,
-              category_name: cat.name,
+            categoryMap.set(cat.product_category_id, {
+              category_id: cat.product_category_id,
+              category_name: cat.category_name,
               subcategories: [],
             });
           }
   
-          const categoryEntry = categoryMap.get(cat.id);
+          const categoryEntry = categoryMap.get(cat.product_category_id);
   
           if (sub) {
             let subcategoryEntry = categoryEntry.subcategories.find(
-              (s) => s.subcategory_id === sub.id
+              (s) => s.subcategory_id === sub.sub_category_id
             );
   
             if (!subcategoryEntry) {
               subcategoryEntry = {
-                subcategory_id: sub.id,
-                subcategory_name: sub.name,
+                subcategory_id: sub.sub_category_id,
+                subcategory_name: sub.sub_category_name,
                 products: [],
               };
               categoryEntry.subcategories.push(subcategoryEntry);
@@ -310,8 +310,8 @@ exports.getBrandsByCategory = async (req, res) => {
   
             prodList.forEach((p) => {
               subcategoryEntry.products.push({
-                product_id: p.id,
-                product_name: p.partnumber,
+                product_id: p.product_id,
+                product_name: p.part_number,
                 price: p.price,
                 quantity: p.quantity,
                 short_des: p.short_description,
@@ -340,16 +340,16 @@ exports.getAllCategoriesOfAllBrand = async (req, res) => {
     const results = await sequelize.query(
       `
       SELECT
-        b.id,
-        b.name,
-        JSON_AGG(DISTINCT c.name) AS categories
+        b.brand_id,
+        b.brand_name,
+        JSON_AGG(DISTINCT c.category_name) AS categories
       FROM
         brands b
-      LEFT JOIN brandcategories bc ON bc."brandId" = b.id
-      LEFT JOIN categories c ON bc."categoryId" = c.id
-      LEFT JOIN subcategories s ON bc."subcategoryId" = s.id
-      GROUP BY b.id, b.name
-      ORDER BY b.id ASC
+      LEFT JOIN brandcategory bc ON bc."brand_id" = b.brand_id
+      LEFT JOIN categories c ON bc."category_id" = c.product_category_id
+      LEFT JOIN subcategories s ON bc."sub_category_id" = s.sub_category_id
+      GROUP BY b.brand_id, b.brand_name
+      ORDER BY b.brand_id ASC
       `,
       {
         type: sequelize.QueryTypes.SELECT,
